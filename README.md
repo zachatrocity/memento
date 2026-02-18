@@ -1,3 +1,5 @@
+![Swell hero](docs/readme-hero.png)
+
 # Swell (Flutter template)
 
 Opinionated-but-simple Flutter starter optimized for quickly shipping client apps.
