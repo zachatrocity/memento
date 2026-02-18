@@ -87,6 +87,14 @@ It runs:
 - `flutter analyze`
 - `flutter test`
 
+## Releasing
+
+See [`docs/releasing.md`](docs/releasing.md) for:
+
+- rolling `dev-latest` APK releases
+- tagged `vX.Y.Z` Play Console Internal releases
+- required GitHub Actions secrets
+
 ## TODOs / future integration points
 
 - OpenAPI generated client wiring + models (fjords)
