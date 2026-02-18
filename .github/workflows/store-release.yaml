@@ -1,0 +1,93 @@
+name: Store Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  android_internal:
+    name: Android (Play Internal)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Pub get
+        run: flutter pub get
+
+      - name: Validate pubspec.yaml version matches tag
+        run: scripts/ci/validate_pubspec_matches_tag.sh "${GITHUB_REF_NAME}"
+
+      - name: Configure Android signing (required for Play upload)
+        run: scripts/ci/android_setup_signing.sh --required
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Build release AAB
+        run: |
+          set -euo pipefail
+          VERSION_NAME="${GITHUB_REF_NAME#v}"
+          flutter build appbundle --release \
+            --build-name "$VERSION_NAME" \
+            --build-number "${GITHUB_RUN_NUMBER}"
+
+      # Optional: also build an APK for side-loading / QA.
+      - name: Build release APK (optional)
+        run: |
+          set -euo pipefail
+          VERSION_NAME="${GITHUB_REF_NAME#v}"
+          flutter build apk --release \
+            --build-name "$VERSION_NAME" \
+            --build-number "${GITHUB_RUN_NUMBER}"
+
+      - name: Upload to Google Play (Internal)
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.splashpad.swell
+          releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          track: internal
+          status: completed
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-release-${{ github.ref_name }}
+          path: |
+            build/app/outputs/bundle/release/app-release.aab
+            build/app/outputs/flutter-apk/app-release.apk
+
+  ios_internal:
+    name: iOS (optional / TODO)
+    runs-on: macos-latest
+    needs: [android_internal]
+
+    # This job is intentionally guarded so tags don't fail when iOS credentials
+    # aren't configured yet. To enable, set IOS_RELEASE_ENABLED=true and add the
+    # iOS secrets listed in docs/releasing.md.
+    if: ${{ secrets.IOS_RELEASE_ENABLED == 'true' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: TODO
+        run: |
+          echo "iOS release lane is not implemented yet."
+          echo "See docs/releasing.md for the secrets and TODO list."
