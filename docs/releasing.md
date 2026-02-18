@@ -1,5 +1,18 @@
 # Releasing
 
+## PR dev builds (label-driven)
+
+To generate a dev APK for a pull request (useful for Obtanium / quick device testing):
+
+1. Add the **`dev-build`** label to the PR.
+2. GitHub Actions will build a **debug APK** and upload it to the workflow **Artifacts**.
+3. The workflow will comment on the PR with a link to the run + artifact name.
+
+Notes:
+- This build does **not** use signing secrets.
+- Artifacts expire (currently **7 days**).
+
+
 This repo uses **pure GitHub Actions** for releases.
 
 ## Workflows
