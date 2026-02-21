@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../config/app_config.dart';
 import '../features/auth/auth_controller.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/items/presentation/detail_screen.dart';
@@ -10,19 +11,27 @@ import 'shell.dart';
 import 'splash_screen.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
-  final auth = ref.watch(authControllerProvider);
+  final config = ref.watch(appConfigProvider);
+
+  // When auth is disabled, we don't need to wait on token hydration.
+  final auth = config.enableAuth ? ref.watch(authControllerProvider) : null;
 
   return GoRouter(
-    initialLocation: const SplashRoute().location,
+    initialLocation: config.enableAuth
+        ? const SplashRoute().location
+        : const HomeRoute().location,
     redirect: (context, state) {
+      if (!config.enableAuth) return null;
+
+      final a = auth!;
       final isSplash = state.matchedLocation == const SplashRoute().location;
       final isLogin = state.matchedLocation == const LoginRoute().location;
 
-      if (auth.isLoading) {
+      if (a.isLoading) {
         return isSplash ? null : const SplashRoute().location;
       }
 
-      final isAuthed = auth.value?.isAuthenticated ?? false;
+      final isAuthed = a.value?.isAuthenticated ?? false;
       if (!isAuthed) {
         return isLogin ? null : const LoginRoute().location;
       }
@@ -35,14 +44,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
-      GoRoute(
-        path: const SplashRoute().location,
-        builder: (context, state) => const SplashScreen(),
-      ),
-      GoRoute(
-        path: const LoginRoute().location,
-        builder: (context, state) => const LoginScreen(),
-      ),
+      if (config.enableAuth) ...[
+        GoRoute(
+          path: const SplashRoute().location,
+          builder: (context, state) => const SplashScreen(),
+        ),
+        GoRoute(
+          path: const LoginRoute().location,
+          builder: (context, state) => const LoginScreen(),
+        ),
+      ],
       ShellRoute(
         builder: (context, state, child) => AppShell(child: child),
         routes: [

@@ -21,7 +21,9 @@ final dioProvider = Provider<Dio>((ref) {
     ),
   );
 
-  dio.interceptors.add(AuthHeaderInterceptor(tokens));
+  if (config.enableAuth) {
+    dio.interceptors.add(AuthHeaderInterceptor(tokens));
+  }
 
   if (config.useFakeBackend) {
     dio.interceptors.add(FakeBackendInterceptor(logger: logger));
