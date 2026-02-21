@@ -72,7 +72,6 @@ ThemeData _buildHackerTheme() {
     brightness: Brightness.dark,
   ).copyWith(
     surface: bg,
-    background: bg,
     primary: green,
     secondary: const Color(0xFF00D16A),
   );
