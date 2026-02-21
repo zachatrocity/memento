@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/app_theme.dart';
 import '../../../app/theme_controller.dart';
 import '../../../config/app_config.dart';
+import '../../../core/notifications/app_messenger.dart';
 import '../../auth/auth_controller.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -52,6 +53,29 @@ class SettingsScreen extends ConsumerWidget {
                   )
                   .toList(),
             ),
+          ),
+          const Divider(height: 1),
+          ListTile(
+            title: const Text('Show toast'),
+            subtitle: const Text('Example: SnackBar via AppMessenger'),
+            onTap: () {
+              ref.read(appMessengerProvider).showToast('Hello from Swell 👋');
+            },
+          ),
+          ListTile(
+            title: const Text('Show banner'),
+            subtitle: const Text('Example: MaterialBanner via AppMessenger'),
+            onTap: () {
+              ref.read(appMessengerProvider).showBanner(
+                    'This is a banner. It banners.',
+                    actionLabel: 'Toast',
+                    onAction: () {
+                      ref
+                          .read(appMessengerProvider)
+                          .showToast('Banner action clicked');
+                    },
+                  );
+            },
           ),
           if (config.enableAuth) ...[
             const Divider(height: 1),

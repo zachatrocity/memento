@@ -17,9 +17,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   final auth = config.enableAuth ? ref.watch(authControllerProvider) : null;
 
   return GoRouter(
-    initialLocation: config.enableAuth
-        ? const SplashRoute().location
-        : const HomeRoute().location,
+    initialLocation: const SplashRoute().location,
     redirect: (context, state) {
       if (!config.enableAuth) return null;
 
@@ -44,16 +42,15 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
-      if (config.enableAuth) ...[
-        GoRoute(
-          path: const SplashRoute().location,
-          builder: (context, state) => const SplashScreen(),
-        ),
+      GoRoute(
+        path: const SplashRoute().location,
+        builder: (context, state) => const SplashScreen(),
+      ),
+      if (config.enableAuth)
         GoRoute(
           path: const LoginRoute().location,
           builder: (context, state) => const LoginScreen(),
         ),
-      ],
       ShellRoute(
         builder: (context, state, child) => AppShell(child: child),
         routes: [
