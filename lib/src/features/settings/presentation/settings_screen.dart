@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/app_theme.dart';
+import '../../../app/theme_controller.dart';
 import '../../../config/app_config.dart';
 import '../../auth/auth_controller.dart';
 
@@ -14,6 +16,9 @@ class SettingsScreen extends ConsumerWidget {
     // Avoid instantiating auth machinery when auth is disabled.
     final auth = config.enableAuth ? ref.watch(authControllerProvider) : null;
 
+    final themeAsync = ref.watch(appThemeControllerProvider);
+    final selectedTheme = themeAsync.value ?? AppTheme.light;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
@@ -25,6 +30,28 @@ class SettingsScreen extends ConsumerWidget {
           ListTile(
             title: const Text('API base URL'),
             subtitle: Text(config.apiBaseUrl),
+          ),
+          const Divider(height: 1),
+          ListTile(
+            title: const Text('Theme'),
+            subtitle: Text(selectedTheme.label),
+            trailing: DropdownButton<AppTheme>(
+              value: selectedTheme,
+              onChanged: (value) async {
+                if (value == null) return;
+                await ref.read(appThemeControllerProvider.notifier).setTheme(
+                      value,
+                    );
+              },
+              items: AppTheme.values
+                  .map(
+                    (t) => DropdownMenuItem(
+                      value: t,
+                      child: Text(t.label),
+                    ),
+                  )
+                  .toList(),
+            ),
           ),
           if (config.enableAuth) ...[
             const Divider(height: 1),

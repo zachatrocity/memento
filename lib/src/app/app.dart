@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../config/app_config.dart';
 import 'router.dart';
-import 'theme.dart';
+import 'app_theme.dart';
+import 'theme_controller.dart';
 
 class App extends ConsumerWidget {
   const App({super.key});
@@ -13,9 +14,12 @@ class App extends ConsumerWidget {
     final router = ref.watch(goRouterProvider);
     final config = ref.watch(appConfigProvider);
 
+    final themeAsync = ref.watch(appThemeControllerProvider);
+    final theme = themeAsync.value ?? AppTheme.light;
+
     return MaterialApp.router(
       title: config.appName,
-      theme: buildLightTheme(),
+      theme: buildTheme(theme),
       routerConfig: router,
     );
   }
