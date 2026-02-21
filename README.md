@@ -7,12 +7,14 @@ Opinionated-but-simple Flutter starter optimized for quickly shipping client app
 ## What’s included
 
 - **Riverpod** (minimal usage) for state & DI
-- **go_router** for navigation + auth redirects
+- **go_router** for navigation
 - **Dio** for networking
 - **Environments**: `dev` / `stage` / `prod` via `--dart-define`
-- **Auth flow** with token persistence (secure storage)
+- Optional **Auth flow** with token persistence (secure storage)
 - **API scaffolding** designed to later swap to an OpenAPI-generated client
-- A small **vertical slice**: Login → Home (list) → Detail → Settings (logout)
+- A small **vertical slice**:
+  - No-auth: Home (list) → Detail → Settings
+  - Auth enabled: Login → Home (list) → Detail → Settings (logout)
 - Basic Material 3 theming
 - GitHub Actions CI: `flutter analyze` + `flutter test`
 
@@ -31,6 +33,16 @@ flutter pub get
 flutter run --dart-define=APP_ENV=dev
 ```
 
+### Auth vs no-auth mode
+
+By default, this template runs **without authentication**.
+
+Enable auth mode at build time:
+
+```bash
+flutter run --dart-define=ENABLE_AUTH=true
+```
+
 ### Run (stage/prod)
 
 Point at a real backend by overriding `API_BASE_URL`:
@@ -47,6 +59,7 @@ Environment selection is compile-time:
 
 - `APP_ENV=dev|stage|prod`
 - Optional `API_BASE_URL=...` override
+- Optional `ENABLE_AUTH=true|false` (default: `false`)
 
 Implementation: `lib/src/config/app_config.dart`.
 

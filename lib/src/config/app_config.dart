@@ -9,6 +9,7 @@ class AppConfig {
     required this.appName,
     required this.enableNetworkLogging,
     required this.useFakeBackend,
+    required this.enableAuth,
   });
 
   final AppEnv env;
@@ -16,6 +17,12 @@ class AppConfig {
   final String appName;
   final bool enableNetworkLogging;
   final bool useFakeBackend;
+
+  /// When false, the template runs as a basic app without any login flow.
+  ///
+  /// IMPORTANT: This is a *product mode* toggle, not a security boundary.
+  /// Backends must still enforce authorization server-side.
+  final bool enableAuth;
 }
 
 final appConfigProvider = Provider<AppConfig>((ref) {
@@ -24,6 +31,9 @@ final appConfigProvider = Provider<AppConfig>((ref) {
     'API_BASE_URL',
     defaultValue: '',
   );
+
+  // Default OFF so the template works out-of-the-box for "no auth" apps.
+  const enableAuth = bool.fromEnvironment('ENABLE_AUTH', defaultValue: false);
 
   final env = AppEnv.fromString(envName);
 
@@ -49,5 +59,6 @@ final appConfigProvider = Provider<AppConfig>((ref) {
     appName: appName,
     enableNetworkLogging: env != AppEnv.prod,
     useFakeBackend: env == AppEnv.dev && apiBaseUrl.startsWith('mock'),
+    enableAuth: enableAuth,
   );
 });

@@ -10,7 +10,9 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final config = ref.watch(appConfigProvider);
-    final auth = ref.watch(authControllerProvider);
+
+    // Avoid instantiating auth machinery when auth is disabled.
+    final auth = config.enableAuth ? ref.watch(authControllerProvider) : null;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
@@ -24,23 +26,25 @@ class SettingsScreen extends ConsumerWidget {
             title: const Text('API base URL'),
             subtitle: Text(config.apiBaseUrl),
           ),
-          const Divider(height: 1),
-          ListTile(
-            title: const Text('Logout'),
-            subtitle: const Text('Clear stored token and return to login'),
-            trailing: auth.isLoading
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : null,
-            onTap: auth.isLoading
-                ? null
-                : () async {
-                    await ref.read(authControllerProvider.notifier).logout();
-                  },
-          ),
+          if (config.enableAuth) ...[
+            const Divider(height: 1),
+            ListTile(
+              title: const Text('Logout'),
+              subtitle: const Text('Clear stored token and return to login'),
+              trailing: auth!.isLoading
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : null,
+              onTap: auth.isLoading
+                  ? null
+                  : () async {
+                      await ref.read(authControllerProvider.notifier).logout();
+                    },
+            ),
+          ],
         ],
       ),
     );
