@@ -82,7 +82,7 @@ class SettingsScreen extends ConsumerWidget {
                   title: Text('Debug Mode'),
                   trailing: CircularProgressIndicator(),
                 ),
-                error: (_, __) => const ListTile(
+                error: (err, stack) => const ListTile(
                   title: Text('Debug Mode'),
                   subtitle: Text('Error loading settings'),
                 ),
