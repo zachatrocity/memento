@@ -25,21 +25,35 @@ Create beautiful slideshow videos from your Google Photos albums with smart dedu
 ### Prerequisites
 
 - Flutter SDK (3.10+)
-- FFmpeg (included via `ffmpeg_kit_flutter`)
+- FFmpeg (included via `ffmpeg_kit_flutter_new`)
 
-### Setup
+### Install from GitHub (Obtanium)
+
+1. Add to [Obtanium](https://obtainium.imranr.dev/):
+   - Source: `zachatrocity/memento`
+   - Filter APK by text: `memento`
+
+2. **⚠️ Important**: Note the SHA-1 fingerprint in the release notes - you'll need it for OAuth setup
+
+### Build from Source
 
 ```bash
 git clone git@github.com:zachatrocity/memento.git
 cd memento
 flutter pub get
-```
-
-### Run
-
-```bash
 flutter run
 ```
+
+## Security Notice: Shared Debug Keystore
+
+⚠️ **This app uses a shared debug keystore for distribution.**
+
+- The signing key is committed to the repository
+- This allows any fork to build APKs with the same signature
+- **Only install from the official `zachatrocity/memento` releases**
+- Never paste your Google OAuth Client ID into unofficial builds
+
+For a personal/side project tool with BYOC (Bring Your Own Credentials) OAuth, this is an acceptable trade-off for convenience. The keystore alone does not grant access to your data - your Client ID is still required.
 
 ## Architecture
 
