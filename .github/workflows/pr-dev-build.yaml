@@ -48,6 +48,14 @@ jobs:
       - name: Build debug APK
         run: flutter build apk --debug --build-number "${GITHUB_RUN_NUMBER}"
 
+      - name: Extract SHA-1 fingerprint
+        id: sha1
+        run: |
+          set -euo pipefail
+          SHA1=$(keytool -list -v -keystore android/app/debug.keystore -storepass android -alias androiddebugkey 2>/dev/null | grep "SHA1" | awk '{print $2}')
+          echo "sha1=$SHA1" >> "$GITHUB_OUTPUT"
+          echo "Debug APK SHA-1: $SHA1"
+
       - name: Prepare artifact
         id: prep
         run: |
@@ -61,7 +69,7 @@ jobs:
             exit 1
           fi
 
-          ARTIFACT_NAME="swell-pr-${{ github.event.pull_request.number }}-apk-${GITHUB_SHA}"
+          ARTIFACT_NAME="memento-pr-${{ github.event.pull_request.number }}-apk-${GITHUB_SHA}"
           OUT_APK="${ARTIFACT_NAME}.apk"
           cp "$APK_PATH" "$OUT_APK"
 
@@ -80,6 +88,7 @@ jobs:
         uses: actions/github-script@v7
         env:
           ARTIFACT_NAME: ${{ steps.prep.outputs.artifact_name }}
+          SHA1: ${{ steps.sha1.outputs.sha1 }}
         with:
           script: |
             const marker = '<!-- dev-build-artifact -->';
@@ -90,6 +99,7 @@ jobs:
             const sha = context.payload.pull_request.head.sha;
             const timestamp = new Date().toISOString();
             const artifactName = process.env.ARTIFACT_NAME;
+            const sha1 = process.env.SHA1;
 
             const body = [
               marker,
@@ -100,7 +110,14 @@ jobs:
               `- Workflow run: ${runUrl}`,
               `- Artifact: \`${artifactName}\``,
               '',
-              `Download instructions: open the workflow run link above → scroll to **Artifacts** → download \`${artifactName}\` (zip) → extract the APK.`,
+              '### 🔐 OAuth Setup',
+              'To use this APK with Google Photos, add this SHA-1 to your OAuth credential:',
+              '',
+              `**SHA-1:** \`${sha1}\``,
+              '',
+              'Package name: `com.zachatrocity.memento`',
+              '',
+              `Download: open the workflow run link above → scroll to **Artifacts** → download \`${artifactName}\` (zip) → extract the APK.`,
               '',
             ].join('\n');
 
