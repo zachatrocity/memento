@@ -35,7 +35,7 @@ android {
 
     signingConfigs {
         // Use shared debug keystore for all builds (personal tool, GitHub releases only)
-        getByName("debug") {
+        named("debug") {
             storeFile = file("debug.keystore")
             storePassword = "android"
             keyAlias = "androiddebugkey"
@@ -51,6 +51,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("debug")
+        }
         release {
             signingConfig = signingConfigs.getByName("release")
         }
