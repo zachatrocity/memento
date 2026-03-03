@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/app_theme.dart';
 import '../../../app/theme_controller.dart';
 import '../../../core/notifications/app_messenger.dart';
+import '../../../core/photos/google_photos_service.dart';
 import '../../../features/settings/data/credentials_provider.dart';
+import '../../../features/settings/data/app_settings_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -61,28 +63,47 @@ class SettingsScreen extends ConsumerWidget {
           
           // Debug Section
           _buildSectionHeader(context, 'Debug'),
-          ListTile(
-            title: const Text('Show toast'),
-            subtitle: const Text('Example: SnackBar via AppMessenger'),
-            onTap: () {
-              ref.read(appMessengerProvider).showToast('Hello from Memento 👋');
+          Consumer(
+            builder: (context, ref, child) {
+              final settingsAsync = ref.watch(appSettingsProvider);
+              return settingsAsync.when(
+                data: (settings) => SwitchListTile(
+                  title: const Text('Debug Mode'),
+                  subtitle: const Text('Enable detailed logging for troubleshooting'),
+                  value: settings.debugModeEnabled,
+                  onChanged: (value) {
+                    ref.read(appSettingsProvider.notifier).toggleDebugMode(value);
+                    ref.read(appMessengerProvider).showToast(
+                      value ? 'Debug mode enabled' : 'Debug mode disabled',
+                    );
+                  },
+                ),
+                loading: () => const ListTile(
+                  title: Text('Debug Mode'),
+                  trailing: CircularProgressIndicator(),
+                ),
+                error: (_, __) => const ListTile(
+                  title: Text('Debug Mode'),
+                  subtitle: Text('Error loading settings'),
+                ),
+              );
             },
           ),
           ListTile(
-            title: const Text('Show banner'),
-            subtitle: const Text('Example: MaterialBanner via AppMessenger'),
+            title: const Text('View Debug Logs'),
+            subtitle: const Text('See detailed error logs'),
+            trailing: const Icon(Icons.list_alt),
+            onTap: () => _showDebugLogs(context, ref),
+          ),
+          ListTile(
+            title: const Text('Clear Debug Logs'),
+            subtitle: const Text('Remove all stored logs'),
             onTap: () {
-              ref.read(appMessengerProvider).showBanner(
-                    'This is a banner. It banners.',
-                    actionLabel: 'Toast',
-                    onAction: () {
-                      ref
-                          .read(appMessengerProvider)
-                          .showToast('Banner action clicked');
-                    },
-                  );
+              ref.read(debugLogsProvider.notifier).state = [];
+              ref.read(appMessengerProvider).showToast('Debug logs cleared');
             },
           ),
+          const Divider(height: 1),
         ],
       ),
     );
@@ -250,6 +271,121 @@ class SettingsScreen extends ConsumerWidget {
             child: const Text('Remove'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showDebugLogs(BuildContext context, WidgetRef ref) {
+    final logs = ref.watch(debugLogsProvider);
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        maxChildSize: 0.9,
+        minChildSize: 0.5,
+        expand: false,
+        builder: (context, scrollController) {
+          return Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                ),
+                child: Row(
+                  children: [
+                    const Text(
+                      'Debug Logs',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const Spacer(),
+                    Text('${logs.length} entries'),
+                    IconButton(
+                      icon: const Icon(Icons.copy),
+                      onPressed: () {
+                        // TODO: Add clipboard support to copy logs
+                        Navigator.pop(context);
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              Expanded(
+                child: logs.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'No logs yet.\nEnable debug mode and try signing in.',
+                          textAlign: TextAlign.center,
+                        ),
+                      )
+                    : ListView.builder(
+                        controller: scrollController,
+                        itemCount: logs.length,
+                        itemBuilder: (context, index) {
+                          final log = logs[logs.length - 1 - index]; // Reverse order
+                          return ExpansionTile(
+                            title: Row(
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: log.level == 'ERROR' ? Colors.red : Colors.green,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    log.message,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            subtitle: Text(
+                              log.timestamp.toLocal().toString().split('.').first,
+                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                            ),
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Level: ${log.level}'),
+                                    const SizedBox(height: 8),
+                                    Text('Message: ${log.message}'),
+                                    if (log.error != null) ...[
+                                      const SizedBox(height: 8),
+                                      const Text('Error:', style: TextStyle(fontWeight: FontWeight.bold)),
+                                      Text(log.error.toString(), style: const TextStyle(color: Colors.red)),
+                                    ],
+                                    if (log.stackTrace != null) ...[
+                                      const SizedBox(height: 8),
+                                      const Text('Stack Trace:', style: TextStyle(fontWeight: FontWeight.bold)),
+                                      Text(log.stackTrace.toString(), style: const TextStyle(fontSize: 10)),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

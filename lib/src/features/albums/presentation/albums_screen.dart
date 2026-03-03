@@ -33,8 +33,11 @@ class AlbumsScreen extends ConsumerWidget {
           
           // Has credentials - show normal flow
           return authState.when(
-            data: (isSignedIn) {
-              if (!isSignedIn) {
+            data: (auth) {
+              if (auth.error != null) {
+                return _buildSignInError(context, ref, auth.error!);
+              }
+              if (!auth.isAuthenticated) {
                 return _buildSignInPrompt(context, ref);
               }
               return albumsAsync.when(
@@ -157,6 +160,41 @@ class AlbumsScreen extends ConsumerWidget {
             child: Text(text),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSignInError(BuildContext context, WidgetRef ref, String error) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
+            const SizedBox(height: 24),
+            const Text(
+              'Sign-In Failed',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              error,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () => ref.read(googleAuthStateProvider.notifier).signIn(),
+              child: const Text('Try Again'),
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () => context.push('/settings'),
+              child: const Text('Check Settings'),
+            ),
+          ],
+        ),
       ),
     );
   }
