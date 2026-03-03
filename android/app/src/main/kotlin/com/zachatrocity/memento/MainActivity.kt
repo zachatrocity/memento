@@ -1,4 +1,4 @@
-package com.splashpad.swell
+package com.zachatrocity.memento
 
 import io.flutter.embedding.android.FlutterActivity
 

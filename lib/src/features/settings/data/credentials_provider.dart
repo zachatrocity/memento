@@ -2,7 +2,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 const _storage = FlutterSecureStorage(
-  aOptions: AndroidOptions(encryptedSharedPreferences: true),
+  aOptions: AndroidOptions(
+    encryptedSharedPreferences: true,
+    keyCipherAlgorithm: KeyCipherAlgorithm.RSA_ECB_PKCS1Padding,
+    storageCipherAlgorithm: StorageCipherAlgorithm.AES_CBC_PKCS7Padding,
+  ),
 );
 
 const _clientIdKey = 'google_oauth_client_id';
