@@ -1,120 +1,91 @@
-![Swell hero](docs/readme-hero.png)
+# Memento
 
-# Swell (Flutter template)
+Create beautiful slideshow videos from your Google Photos albums with smart deduplication and your favorite music.
 
-Opinionated-but-simple Flutter starter optimized for quickly shipping client apps.
+![Memento hero](docs/readme-hero.png)
 
-## What’s included
+## Features
 
-- **Riverpod** (minimal usage) for state & DI
-- **go_router** for navigation
-- **Dio** for networking
-- **Environments**: `dev` / `stage` / `prod` via `--dart-define`
-- Optional **Auth flow** with token persistence (secure storage)
-- **API scaffolding** designed to later swap to an OpenAPI-generated client
-- A small **vertical slice**:
-  - No-auth: Home (list) → Detail → Settings
-  - Auth enabled: Login → Home (list) → Detail → Settings (logout)
-- Basic Material 3 theming
-- GitHub Actions CI: `flutter analyze` + `flutter test`
+- **📸 Google Photos Integration** — Browse and select from your albums
+- **🧠 Smart Deduplication** — Automatically detects and removes duplicate photos, keeping only the best quality version
+- **🎵 Music Support** — Add your own music tracks to accompany the slideshow
+- **🎬 FFmpeg-Powered Video Generation** — Professional crossfade transitions and quality encoding
+- **📱 Cross-Platform** — Runs on iOS, Android, macOS, and more
 
-## Quick start
+## Tech Stack
 
-### Prereqs
+- **Flutter** — UI framework
+- **Riverpod** — State management
+- **go_router** — Navigation
+- **FFmpeg** — Video generation
+- **Google Photos API** — Photo source
 
-- Flutter (stable). This repo targets Flutter **3.41.x** (Dart **3.11**).
+## Quick Start
 
-### Run (dev)
+### Prerequisites
 
-Dev defaults to a built-in **fake backend** (no real server required).
+- Flutter SDK (3.10+)
+- FFmpeg (included via `ffmpeg_kit_flutter_new`)
+
+### Install from GitHub (Obtanium)
+
+1. Add to [Obtanium](https://obtainium.imranr.dev/):
+   - Source: `zachatrocity/memento`
+   - Filter APK by text: `memento`
+
+2. **⚠️ Important**: Note the SHA-1 fingerprint in the release notes - you'll need it for OAuth setup
+
+### Build from Source
 
 ```bash
+git clone git@github.com:zachatrocity/memento.git
+cd memento
 flutter pub get
-flutter run --dart-define=APP_ENV=dev
+flutter run
 ```
 
-### Auth vs no-auth mode
+## Important: Personal Tool Notice
 
-By default, this template runs **without authentication**.
+⚠️ **Memento is designed as a personal tool distributed via GitHub releases only.**
 
-Enable auth mode at build time:
+- Uses a shared debug keystore for signing (committed to repo)
+- **Only install from the official `zachatrocity/memento` releases**
+- Never paste your Google OAuth Client ID into unofficial builds
+- BYOC model: You bring your own Google OAuth credentials
 
-```bash
-flutter run --dart-define=ENABLE_AUTH=true
+## Setup
+
+After installing the APK:
+
+1. **Get the SHA-1** from the release notes (same for all releases)
+2. **Create OAuth credentials** at [Google Cloud Console](https://console.cloud.google.com/):
+   - Enable Photos Library API
+   - Create Android OAuth credential with the SHA-1
+   - Package name: `com.zachatrocity.memento`
+3. **Add your Client ID** in the app's Settings
+4. **Sign in** and start creating slideshows!
+
+## Architecture
+
+```
+lib/src/
+├── core/
+│   ├── photos/          # Google Photos API + smart dedupe
+│   └── video/           # FFmpeg video generation
+├── features/
+│   ├── albums/          # Album browsing & selection
+│   ├── music/           # Music track management
+│   └── slideshow/       # Video creation UI
 ```
 
-### Run (stage/prod)
+## Smart Deduplication
 
-Point at a real backend by overriding `API_BASE_URL`:
+Memento uses perceptual hashing (pHash) to find visually similar photos and quality scoring (sharpness + resolution) to pick the best one from duplicates.
 
-```bash
-flutter run \
-  --dart-define=APP_ENV=stage \
-  --dart-define=API_BASE_URL=https://api.stage.example.com
-```
+## License
 
-## Environments
+MIT
 
-Environment selection is compile-time:
+---
 
-- `APP_ENV=dev|stage|prod`
-- Optional `API_BASE_URL=...` override
-- Optional `ENABLE_AUTH=true|false` (default: `false`)
-
-Implementation: `lib/src/config/app_config.dart`.
-
-## Architecture (high level)
-
-- **UI**: feature screens under `lib/src/features/*/presentation`
-- **State**: Riverpod providers/controllers near their feature
-- **Data**:
-  - `lib/src/data/api/*` → Dio configuration + interceptors
-  - Feature APIs like `AuthApi` / `ItemsApi` define an interface boundary.
-
-The intent is that when **fjords exposes OpenAPI**, you can replace `DioAuthApi`/`DioItemsApi` with a generated client adapter while keeping:
-
-- controllers/notifiers
-- repositories
-- UI
-
-## Folder structure
-
-```text
-lib/
-  main.dart
-  src/
-    app/                # App widget, router, theme, shell
-    config/             # env + app config
-    core/               # cross-cutting helpers (errors, logging, storage, widgets)
-    data/               # shared data layer (dio, interceptors)
-    features/
-      auth/
-      items/
-      settings/
-```
-
-## CI
-
-GitHub Actions workflow lives at `.github/workflows/ci.yaml`.
-
-It runs:
-
-- `flutter analyze`
-- `flutter test`
-
-## Releasing
-
-See [`docs/releasing.md`](docs/releasing.md) for:
-
-- rolling `dev-latest` APK releases
-- tagged `vX.Y.Z` Play Console Internal releases
-- required GitHub Actions secrets
-
-## TODOs / future integration points
-
-- OpenAPI generated client wiring + models (fjords)
-- Real auth (refresh tokens, session expiry, 401 handling)
-- Deep links + universal links
-- Push notifications
-- Offline caching strategy
-- App icon generation (e.g. `flutter_launcher_icons`)
+Built with ❤️ using the [Swell](https://github.com/splashpad/swell) Flutter template.
