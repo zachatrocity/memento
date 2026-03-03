@@ -1,128 +1,146 @@
-# Google Sign-In Setup Guide
+# Google Sign-In Setup Guide (BYOC)
 
-This guide walks you through configuring Google Sign-In for Memento to access Google Photos.
+Memento uses a **BYOC (Bring Your Own Credentials)** model. This means each user creates their own Google OAuth credentials rather than using shared app credentials. This approach:
 
-## Prerequisites
+- ✅ No app verification required from Google
+- ✅ Works immediately after setup
+- ✅ Your data stays in your control
+- ✅ No reliance on a centralized service
 
-- A Google account
-- Access to [Google Cloud Console](https://console.cloud.google.com/)
+## Quick Start (5 minutes)
 
-## Step 1: Create a Google Cloud Project
+### 1. Create a Google Cloud Project
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select an existing one
-3. Name it "Memento" or something memorable
+2. Click the project selector (top left) → **New Project**
+3. Name it "Memento" (or anything you like)
+4. Click **Create**
 
-## Step 2: Enable the Photos Library API
+### 2. Enable the Photos Library API
 
-1. In the Google Cloud Console, go to **APIs & Services** > **Library**
-2. Search for "Photos Library API"
+1. In your new project, go to **APIs & Services** > **Library**
+2. Search for **"Photos Library API"**
 3. Click **Enable**
 
-## Step 3: Configure OAuth Consent Screen
+### 3. Configure OAuth Consent Screen
 
 1. Go to **APIs & Services** > **OAuth consent screen**
-2. Select **External** (unless you're a Google Workspace customer)
-3. Fill in the required fields:
-   - App name: "Memento"
-   - User support email: Your email
-   - Developer contact information: Your email
-4. Click **Save and Continue**
-5. On the **Scopes** screen, click **Add or Remove Scopes**
-6. Add these scopes:
-   - `.../auth/photoslibrary.readonly` (View your Google Photos library)
-   - `.../auth/photoslibrary.sharing` (Access shared albums)
-7. Click **Save and Continue**
-8. On the **Test users** screen, add your email address as a test user
-9. Click **Save and Continue** and then **Back to Dashboard**
+2. Select **External** (for personal use)
+3. Fill in required fields:
+   - **App name**: "Memento"
+   - **User support email**: Your email
+   - **Developer contact info**: Your email
+4. Click **Save and Continue** three times
+5. Click **Back to Dashboard**
 
-## Step 4: Create OAuth 2.0 Credentials
+### 4. Create OAuth Credentials
 
-### For Android:
+#### For iOS:
 
 1. Go to **APIs & Services** > **Credentials**
 2. Click **Create Credentials** > **OAuth client ID**
-3. Select **Android** as the application type
-4. Name: "Memento Android"
-5. Package name: `com.zachatrocity.memento`
-6. SHA-1 certificate fingerprint:
-   - For debug: Run `cd android && ./gradlew signingReport` and copy the SHA-1 from the debug key
-   - For release: Use your release keystore's SHA-1
-7. Click **Create**
-8. Copy the **Client ID** (you'll need it for iOS)
-
-### For iOS:
-
-1. Go to **APIs & Services** > **Credentials**
-2. Click **Create Credentials** > **OAuth client ID**
-3. Select **iOS** as the application type
+3. Select **iOS** as application type
 4. Name: "Memento iOS"
 5. Bundle ID: `com.zachatrocity.memento`
 6. Click **Create**
-7. Copy the **Client ID** (looks like `1234567890-abc123def456.apps.googleusercontent.com`)
+7. Copy the **Client ID** (looks like: `1234567890-abc123.apps.googleusercontent.com`)
 
-## Step 5: Configure the App
+#### For Android:
 
-### iOS Configuration
+1. Go to **APIs & Services** > **Credentials**
+2. Click **Create Credentials** > **OAuth client ID**
+3. Select **Android** as application type
+5. Name: "Memento Android"
+6. Package name: `com.zachatrocity.memento`
+7. SHA-1 certificate fingerprint:
+   
+   **For development (debug):**
+   ```bash
+   cd android
+   ./gradlew signingReport
+   ```
+   Copy the SHA-1 from the `AndroidDebugKey` entry
+   
+   **For release:** Use your release keystore's SHA-1
+   
+8. Click **Create**
 
-1. Open `ios/Runner/Info.plist`
-2. Find the `CFBundleURLTypes` section
-3. Replace `YOUR_CLIENT_ID` with your iOS Client ID from Step 4, but reversed:
-   - If your Client ID is: `1234567890-abc123def456.apps.googleusercontent.com`
-   - Use: `com.googleusercontent.apps.1234567890-abc123def456`
+### 5. Add Test User
 
-Example:
-```xml
-<key>CFBundleURLSchemes</key>
-<array>
-    <string>com.googleusercontent.apps.1234567890-abc123def456</string>
-</array>
-```
+1. Go to **APIs & Services** > **OAuth consent screen**
+2. Scroll to **Test users**
+3. Click **Add users**
+4. Enter your Google account email
+5. Click **Save**
 
-### Android Configuration
+### 6. Enter Client ID in Memento
 
-No additional configuration needed! The `google_sign_in` package handles Android automatically with the package name and SHA-1 fingerprint you configured in Step 4.
+1. Open the Memento app
+2. Go to **Settings**
+3. Tap **Configure Google Photos**
+4. Paste your Client ID from Step 4
+5. Tap **Save**
 
-## Step 6: Test the Integration
+### 7. Sign In
 
-1. Run the app: `flutter run`
-2. Navigate to the Albums screen
-3. Tap "Sign in with Google"
-4. You should see a Google Sign-In popup
-5. After signing in, your Google Photos albums should appear
+1. Go to **Albums** tab
+2. Tap **Sign in with Google**
+3. Select your Google account
+4. Accept the permissions
+5. Your albums should appear!
 
 ## Troubleshooting
 
 ### "Error 10: Developer Error" (Android)
-- Make sure the SHA-1 fingerprint in Google Cloud Console matches your debug keystore
-- Run `cd android && ./gradlew signingReport` to get the correct fingerprint
-- The package name must exactly match: `com.zachatrocity.memento`
+
+**Cause:** SHA-1 fingerprint doesn't match
+
+**Fix:** 
+1. Run `./gradlew signingReport` in the `android` directory
+2. Copy the exact SHA-1 from `AndroidDebugKey`
+3. In Google Cloud Console, edit your Android OAuth credential
+4. Add the SHA-1 fingerprint
 
 ### "Error 401: invalid_client" (iOS)
-- Make sure you've reversed the Client ID correctly
-- The format should be: `com.googleusercontent.apps.NUMBER-STRING`
 
-### App not shown in Google account permissions
-- Make sure you're added as a test user in the OAuth consent screen
-- The app is in "Testing" mode, not "Production"
+**Cause:** Wrong Client ID format
 
-## Going to Production
+**Fix:** Make sure you copied the iOS Client ID (not the Android one). It should look like:
+```
+1234567890-abc123def456ghi789jkl012mno345.apps.googleusercontent.com
+```
 
-Before releasing to the Play Store or App Store:
+### "App is not verified" warning
 
-1. **Publish your OAuth consent screen**:
-   - Go to **OAuth consent screen** in Google Cloud Console
-   - Click **Publish App**
-   - Complete the verification process (may take several days)
+This is normal for BYOC apps in testing mode. Click **Advanced** > **Go to Memento (unsafe)**. Since you're using your own credentials for personal use, this warning is expected.
 
-2. **Add release SHA-1** (Android):
-   - Get your release keystore's SHA-1
-   - Add it to the Android OAuth client ID in Google Cloud Console
+### Can't see albums after signing in
 
-3. **Configure App Store/Play Store links** in the OAuth consent screen
+1. Make sure you added your email as a **test user** (Step 5)
+2. Check that **Photos Library API** is enabled (Step 2)
+3. Try signing out and back in
 
-## References
+## Security Notes
 
+- Your Client ID is stored securely in your device's encrypted storage
+- The app never sends your credentials to any server
+- All communication is directly between your device and Google's APIs
+- You can revoke access anytime at [Google Account permissions](https://myaccount.google.com/permissions)
+
+## Going Further
+
+### Publishing to App Store/Play Store?
+
+If you want to distribute the app publicly, you'll need to:
+
+1. **Verify your OAuth consent screen** (takes several days)
+2. Add app icons, screenshots, privacy policy
+3. Submit for review
+
+But for personal/family use, the BYOC testing mode works perfectly!
+
+## Need Help?
+
+- [Google Photos Library API Docs](https://developers.google.com/photos/library/guides/get-started)
 - [Google Sign-In for Flutter](https://pub.dev/packages/google_sign_in)
-- [Google Photos Library API](https://developers.google.com/photos/library/guides/get-started)
-- [OAuth 2.0 for Mobile & Desktop Apps](https://developers.google.com/identity/protocols/oauth2/native-app)
+- File an issue on GitHub

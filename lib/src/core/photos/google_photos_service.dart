@@ -2,16 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
-
-final googleSignInProvider = Provider<GoogleSignIn>((ref) {
-  return GoogleSignIn(
-    scopes: [
-      'email',
-      'https://www.googleapis.com/auth/photoslibrary.readonly',
-      'https://www.googleapis.com/auth/photoslibrary.sharing',
-    ],
-  );
-});
+import 'package:memento/src/features/settings/data/credentials_provider.dart';
 
 final googlePhotosServiceProvider = Provider<GooglePhotosService>((ref) {
   final dio = Dio(BaseOptions(
@@ -20,30 +11,54 @@ final googlePhotosServiceProvider = Provider<GooglePhotosService>((ref) {
     receiveTimeout: const Duration(seconds: 30),
   ));
   final logger = Logger();
-  final googleSignIn = ref.watch(googleSignInProvider);
   
-  return GooglePhotosService(dio: dio, logger: logger, googleSignIn: googleSignIn);
+  return GooglePhotosService(
+    dio: dio, 
+    logger: logger,
+    ref: ref,
+  );
 });
 
 class GooglePhotosService {
   final Dio _dio;
   final Logger _logger;
-  final GoogleSignIn _googleSignIn;
+  final Ref _ref;
+  GoogleSignIn? _googleSignIn;
   GoogleSignInAccount? _currentUser;
 
   GooglePhotosService({
     required Dio dio,
     required Logger logger,
-    required GoogleSignIn googleSignIn,
+    required Ref ref,
   })  : _dio = dio,
         _logger = logger,
-        _googleSignIn = googleSignIn;
+        _ref = ref;
 
   bool get isSignedIn => _currentUser != null;
 
+  /// Initialize GoogleSignIn with the stored client ID
+  Future<GoogleSignIn> _getGoogleSignIn() async {
+    if (_googleSignIn != null) return _googleSignIn!;
+    
+    final credentials = _ref.read(credentialsProvider).valueOrNull;
+    final clientId = credentials?.clientId;
+    
+    _googleSignIn = GoogleSignIn(
+      clientId: clientId, // Used on iOS, ignored on Android
+      scopes: [
+        'email',
+        'https://www.googleapis.com/auth/photoslibrary.readonly',
+        'https://www.googleapis.com/auth/photoslibrary.sharing',
+      ],
+    );
+    
+    return _googleSignIn!;
+  }
+
   Future<bool> signIn() async {
     try {
-      _currentUser = await _googleSignIn.signIn();
+      final googleSignIn = await _getGoogleSignIn();
+      _currentUser = await googleSignIn.signIn();
       return _currentUser != null;
     } catch (e) {
       _logger.e('Google Sign-In failed', error: e);
@@ -52,7 +67,9 @@ class GooglePhotosService {
   }
 
   Future<void> signOut() async {
-    await _googleSignIn.signOut();
+    if (_googleSignIn != null) {
+      await _googleSignIn!.signOut();
+    }
     _currentUser = null;
   }
 
