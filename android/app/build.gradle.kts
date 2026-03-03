@@ -8,22 +8,6 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-// Signing configuration.
-//
-// Priority:
-// 1. Private release keystore (key.properties) - for Play Store releases
-// 2. Shared debug keystore (debug.keystore) - for Obtanium/CI builds
-//
-// For Play Store: Set up android/key.properties with your private keystore
-// For Obtanium/CI: Uses the committed debug.keystore automatically
-val keystoreProperties = Properties()
-val keystorePropertiesFile = rootProject.file("key.properties")
-val hasPrivateKeystore = keystorePropertiesFile.exists()
-
-if (hasPrivateKeystore) {
-    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
-}
-
 android {
     namespace = "com.zachatrocity.memento"
     compileSdk = flutter.compileSdkVersion
@@ -50,7 +34,7 @@ android {
     }
 
     signingConfigs {
-        // Debug config (local development)
+        // Use shared debug keystore for all builds (personal tool, GitHub releases only)
         getByName("debug") {
             storeFile = file("debug.keystore")
             storePassword = "android"
@@ -58,21 +42,11 @@ android {
             keyPassword = "android"
         }
         
-        // Release config: use private keystore if available, otherwise use shared debug
         create("release") {
-            if (hasPrivateKeystore) {
-                // Play Store release with private signing key
-                storeFile = file(keystoreProperties["storeFile"] as String)
-                storePassword = keystoreProperties["storePassword"] as String
-                keyAlias = keystoreProperties["keyAlias"] as String
-                keyPassword = keystoreProperties["keyPassword"] as String
-            } else {
-                // Obtanium/CI release with shared debug keystore
-                storeFile = file("debug.keystore")
-                storePassword = "android"
-                keyAlias = "androiddebugkey"
-                keyPassword = "android"
-            }
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
         }
     }
 

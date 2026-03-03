@@ -44,16 +44,26 @@ flutter pub get
 flutter run
 ```
 
-## Security Notice: Shared Debug Keystore
+## Important: Personal Tool Notice
 
-⚠️ **This app uses a shared debug keystore for distribution.**
+⚠️ **Memento is designed as a personal tool distributed via GitHub releases only.**
 
-- The signing key is committed to the repository
-- This allows any fork to build APKs with the same signature
+- Uses a shared debug keystore for signing (committed to repo)
 - **Only install from the official `zachatrocity/memento` releases**
 - Never paste your Google OAuth Client ID into unofficial builds
+- BYOC model: You bring your own Google OAuth credentials
 
-For a personal/side project tool with BYOC (Bring Your Own Credentials) OAuth, this is an acceptable trade-off for convenience. The keystore alone does not grant access to your data - your Client ID is still required.
+## Setup
+
+After installing the APK:
+
+1. **Get the SHA-1** from the release notes (same for all releases)
+2. **Create OAuth credentials** at [Google Cloud Console](https://console.cloud.google.com/):
+   - Enable Photos Library API
+   - Create Android OAuth credential with the SHA-1
+   - Package name: `com.zachatrocity.memento`
+3. **Add your Client ID** in the app's Settings
+4. **Sign in** and start creating slideshows!
 
 ## Architecture
 
