@@ -64,8 +64,8 @@ dependencies:
   image: ^4.5.2
   crypto: ^3.0.6
   
-  # FFmpeg video generation (via platform channels)
-  ffmpeg_kit_flutter: ^6.0.3
+  # FFmpeg video generation (maintained fork)
+  ffmpeg_kit_flutter_new: ^4.1.0
   
   # For album grid UI
   flutter_staggered_grid_view: ^0.7.0
