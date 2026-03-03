@@ -130,13 +130,26 @@ class SettingsScreen extends ConsumerWidget {
       );
     }
 
-    return ListTile(
-      title: const Text('Configure Google Photos'),
-      subtitle: const Text('Add your OAuth Client ID to connect'),
-      trailing: FilledButton(
-        onPressed: () => _showEditDialog(context, ref, null),
-        child: const Text('Add'),
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ListTile(
+          title: const Text('Configure Google Photos'),
+          subtitle: const Text('Add your OAuth Client ID to connect'),
+          trailing: FilledButton(
+            onPressed: () => _showEditDialog(context, ref, null),
+            child: const Text('Add'),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: TextButton.icon(
+            onPressed: () => _showSha1Helper(context),
+            icon: const Icon(Icons.help_outline, size: 18),
+            label: const Text('Need help finding your SHA-1?'),
+          ),
+        ),
+      ],
     );
   }
 
@@ -235,6 +248,133 @@ class SettingsScreen extends ConsumerWidget {
               backgroundColor: Colors.red,
             ),
             child: const Text('Remove'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSha1Helper(BuildContext context) {
+    const sha1Command = './gradlew signingReport';
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Get Your SHA-1 Fingerprint'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Google requires your SHA-1 fingerprint for Android OAuth. Here's how to get it:",
+              ),
+              const SizedBox(height: 16),
+              
+              const Text(
+                'Step 1: Run this command',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[900],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        sha1Command,
+                        style: const TextStyle(
+                          fontFamily: 'monospace',
+                          color: Colors.green,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.copy, color: Colors.white, size: 18),
+                      onPressed: () {
+                        // Copy to clipboard would go here
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Command copied')),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              
+              const Text(
+                'Step 2: Find this in the output',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Variant: debug',
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                    const Text('Config: debug'),
+                    const SizedBox(height: 4),
+                    Text(
+                      'SHA1: AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue[900],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              
+              const Text(
+                'Step 3: Paste in Google Cloud Console',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'When creating your Android OAuth credential, paste the SHA-1 value (without quotes).',
+              ),
+              const SizedBox(height: 16),
+              
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange[50],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.info_outline, size: 18),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Release builds need a separate SHA-1 from your release keystore.',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Got it'),
           ),
         ],
       ),
