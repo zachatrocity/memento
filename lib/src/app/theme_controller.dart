@@ -13,10 +13,15 @@ class AppThemeController extends AsyncNotifier<AppTheme> {
 
   @override
   Future<AppTheme> build() async {
-    final store = ref.watch(secureStoreProvider);
-    final existing = await store.read(_key);
-    if (existing == null || existing.isEmpty) return AppTheme.light;
-    return AppThemeX.fromString(existing);
+    try {
+      final store = ref.watch(secureStoreProvider);
+      final existing = await store.read(_key);
+      if (existing == null || existing.isEmpty) return AppTheme.light;
+      return AppThemeX.fromString(existing);
+    } catch (e) {
+      // If secure storage fails on startup, use default theme
+      return AppTheme.light;
+    }
   }
 
   Future<void> setTheme(AppTheme theme) async {

@@ -37,8 +37,13 @@ class CredentialsState {
 class CredentialsNotifier extends AsyncNotifier<CredentialsState> {
   @override
   Future<CredentialsState> build() async {
-    final clientId = await _storage.read(key: _clientIdKey);
-    return CredentialsState(clientId: clientId);
+    try {
+      final clientId = await _storage.read(key: _clientIdKey);
+      return CredentialsState(clientId: clientId);
+    } catch (e) {
+      // If secure storage fails (e.g., keychain locked), return empty state
+      return const CredentialsState();
+    }
   }
 
   /// Save the Google OAuth Client ID
