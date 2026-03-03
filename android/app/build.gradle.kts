@@ -10,14 +10,17 @@ plugins {
 
 // Signing configuration.
 //
-// This uses android/key.properties + android/app/upload-keystore.jks when present.
-// In CI we generate these from GitHub Secrets (see scripts/ci/android_setup_signing.sh).
+// Priority:
+// 1. Private release keystore (key.properties) - for Play Store releases
+// 2. Shared debug keystore (debug.keystore) - for Obtanium/CI builds
 //
-// If key.properties is missing we fall back to debug signing so local
-// `flutter run --release` continues to work out of the box.
+// For Play Store: Set up android/key.properties with your private keystore
+// For Obtanium/CI: Uses the committed debug.keystore automatically
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
-if (keystorePropertiesFile.exists()) {
+val hasPrivateKeystore = keystorePropertiesFile.exists()
+
+if (hasPrivateKeystore) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
@@ -47,13 +50,29 @@ android {
     }
 
     signingConfigs {
-        create("release") {
-            // For Obtanium distribution, use the shared debug keystore
-            // This allows all users to use the same SHA-1 for OAuth
+        // Debug config (local development)
+        getByName("debug") {
             storeFile = file("debug.keystore")
             storePassword = "android"
             keyAlias = "androiddebugkey"
             keyPassword = "android"
+        }
+        
+        // Release config: use private keystore if available, otherwise use shared debug
+        create("release") {
+            if (hasPrivateKeystore) {
+                // Play Store release with private signing key
+                storeFile = file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+            } else {
+                // Obtanium/CI release with shared debug keystore
+                storeFile = file("debug.keystore")
+                storePassword = "android"
+                keyAlias = "androiddebugkey"
+                keyPassword = "android"
+            }
         }
     }
 
