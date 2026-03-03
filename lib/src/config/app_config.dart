@@ -10,6 +10,7 @@ class AppConfig {
     required this.enableNetworkLogging,
     required this.useFakeBackend,
     required this.enableAuth,
+    required this.enableGooglePhotos,
   });
 
   final AppEnv env;
@@ -17,12 +18,8 @@ class AppConfig {
   final String appName;
   final bool enableNetworkLogging;
   final bool useFakeBackend;
-
-  /// When false, the template runs as a basic app without any login flow.
-  ///
-  /// IMPORTANT: This is a *product mode* toggle, not a security boundary.
-  /// Backends must still enforce authorization server-side.
   final bool enableAuth;
+  final bool enableGooglePhotos;
 }
 
 final appConfigProvider = Provider<AppConfig>((ref) {
@@ -32,8 +29,8 @@ final appConfigProvider = Provider<AppConfig>((ref) {
     defaultValue: '',
   );
 
-  // Default OFF so the template works out-of-the-box for "no auth" apps.
   const enableAuth = bool.fromEnvironment('ENABLE_AUTH', defaultValue: false);
+  const enableGooglePhotos = bool.fromEnvironment('ENABLE_GOOGLE_PHOTOS', defaultValue: true);
 
   final env = AppEnv.fromString(envName);
 
@@ -48,9 +45,9 @@ final appConfigProvider = Provider<AppConfig>((ref) {
       : defaultBaseUrl;
 
   final appName = switch (env) {
-    AppEnv.dev => 'Swell (Dev)',
-    AppEnv.stage => 'Swell (Stage)',
-    AppEnv.prod => 'Swell',
+    AppEnv.dev => 'Memento (Dev)',
+    AppEnv.stage => 'Memento (Stage)',
+    AppEnv.prod => 'Memento',
   };
 
   return AppConfig(
@@ -60,5 +57,6 @@ final appConfigProvider = Provider<AppConfig>((ref) {
     enableNetworkLogging: env != AppEnv.prod,
     useFakeBackend: env == AppEnv.dev && apiBaseUrl.startsWith('mock'),
     enableAuth: enableAuth,
+    enableGooglePhotos: enableGooglePhotos,
   );
 });

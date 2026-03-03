@@ -34,7 +34,7 @@ class AppShell extends StatelessWidget {
         selectedIndex: index,
         onDestinationSelected: (i) => _onTap(context, i),
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.list), label: 'Home'),
+          NavigationDestination(icon: Icon(Icons.photo_library), label: 'Albums'),
           NavigationDestination(icon: Icon(Icons.settings), label: 'Settings'),
         ],
       ),
